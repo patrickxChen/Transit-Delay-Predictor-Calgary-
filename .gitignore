@@ -4,3 +4,4 @@ __pycache__/
 data/realtime/
 transit.db
 .env
+data/static/CT_GTFS/
