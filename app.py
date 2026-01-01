@@ -50,14 +50,17 @@ with open(GTFS_PATH + "calendar.txt", newline='', encoding="utf-8") as f:
 @app.route("/routes")
 def get_routes():
     # date format: YYYYMMDD
+
     date_str = request.args.get("date")
     if not date_str:
-        return jsonify({"error": "Missing date parameter"}), 400
-
-    try:
-        date_obj = datetime.datetime.strptime(date_str, "%Y%m%d")
-    except ValueError:
-        return jsonify({"error": "Invalid date format. Use YYYYMMDD"}), 400
+        # Use today's date in YYYYMMDD format
+        date_obj = datetime.datetime.now()
+        date_str = date_obj.strftime("%Y%m%d")
+    else:
+        try:
+            date_obj = datetime.datetime.strptime(date_str, "%Y%m%d")
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYYMMDD"}), 400
 
     weekday = date_obj.weekday()  # 0 = Monday, 6 = Sunday
     weekday_map = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
