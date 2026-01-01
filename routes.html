@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calgary Transit Routes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { color: #0077c2; }
+        #routes { margin-top: 1em; }
+        .route { padding: 0.5em; border-bottom: 1px solid #eee; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Calgary Transit — Stop Trips</h1>
+    <p>Search for a route and select it to view upcoming trips (next 2 hours). Click a trip to view stops.</p>
+    <input id="routeSearch" placeholder="Search route (e.g., 1, 100, Airport)" style="width:100%;padding:.5rem;margin-bottom:.5rem" />
+    <div id="routeSuggestions" style="border:1px solid #ddd;max-height:200px;overflow:auto"></div>
+    <div id="routeTrips"></div>
+    <script>
+        // Route search suggestions
+        const search = document.getElementById('routeSearch');
+        const suggestions = document.getElementById('routeSuggestions');
+        const tripsDiv = document.getElementById('routeTrips');
+
+        let searchTimeout = null;
+        search.addEventListener('input', ()=>{
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(fetchRouteSuggestions, 250);
+        });
+
+        async function fetchRouteSuggestions(){
+            const q = search.value.trim();
+            if(!q){ suggestions.innerHTML = ''; tripsDiv.innerHTML = ''; return }
+            suggestions.innerHTML = 'Searching...';
+            try{
+                const res = await fetch(`/api/routes?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                if(data.routes && data.routes.length){
+                    suggestions.innerHTML = data.routes.map(r=>`<div style="padding:.4rem;border-bottom:1px solid #eee;cursor:pointer" onclick="selectRoute('${r.route_id}','${(r.route_short_name||'').replace(/'/g,"\\'")}','${(r.route_long_name||'').replace(/'/g,"\\'")}')">${r.route_short_name} — ${r.route_long_name}</div>`).join('');
+                } else {
+                    suggestions.innerHTML = '<div style="padding:.4rem">No matches</div>';
+                }
+            }catch(e){ suggestions.innerHTML = '<div style="padding:.4rem;color:red">Error</div>' }
+        }
+
+        async function selectRoute(route_id, short_name, long_name){
+            search.value = `${short_name} — ${long_name}`;
+            suggestions.innerHTML = '';
+            tripsDiv.innerHTML = 'Loading trips...';
+            try{
+                const res = await fetch(`/api/route_trips?route_id=${encodeURIComponent(route_id)}`);
+                const data = await res.json();
+                if(data.trips && data.trips.length){
+                    tripsDiv.innerHTML = data.trips.map(t=>`<div class="route" style="cursor:pointer" onclick="window.location='/trip?trip_id=${t.trip_id}'">${t.earliest_departure||''} — Trip ${t.trip_id}</div>`).join('');
+                } else {
+                    tripsDiv.innerHTML = '<div class="error">No upcoming trips for this route.</div>';
+                }
+            }catch(e){ tripsDiv.innerHTML = `<div class="error">Error loading trips: ${e}</div>` }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trip Stops</title>
+  <style>body{font-family:Arial;margin:1rem} h1{color:#0077c2} .stop{padding:.4rem;border-bottom:1px solid #eee}</style>
+</head>
+<body>
+  <h1>Trip Stops</h1>
+  <div id="info">Loading...</div>
+  <div id="stops"></div>
+  <script>
+    function qs(name){
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+    async function load(){
+      const tripId = qs('trip_id');
+      if(!tripId){ document.getElementById('info').innerText='Missing trip_id in URL'; return }
+      document.getElementById('info').innerText = `Trip ${tripId}`;
+      try{
+        const res = await fetch(`/api/trip_stops?trip_id=${encodeURIComponent(tripId)}`);
+        const data = await res.json();
+        if(data.stops && data.stops.length){
+          document.getElementById('stops').innerHTML = data.stops.map(s=>
+            `<div class="stop">${s.stop_sequence? s.stop_sequence + '. ' : ''}${s.stop_name || s.stop_id} <span style="float:right">${s.arrival_time||''} / ${s.departure_time||''}</span></div>`
+          ).join('');
+        } else {
+          document.getElementById('stops').innerHTML = '<div class="stop">No stops found</div>';
+        }
+      }catch(e){ document.getElementById('stops').innerText = 'Error loading trip stops: '+e }
+    }
+    load();
+  </script>
+</body>
+</html>
