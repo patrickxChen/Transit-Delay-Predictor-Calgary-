@@ -38,3 +38,15 @@ def get_routes_for_date(date_str):
     trips_today = trips[trips.service_id.isin(active_services)]
     routes_today = trips_today.merge(routes, on="route_id")[["route_id","route_short_name","route_long_name"]].drop_duplicates()
     return routes_today.to_dict(orient="records")
+
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python parse_routes.py YYYYMMDD")
+    else:
+        date_str = sys.argv[1]
+        routes = get_routes_for_date(date_str)
+        print(f"Routes for {date_str}:")
+        for route in routes:
+            print(f"{route['route_id']}: {route['route_short_name']} - {route['route_long_name']}")
