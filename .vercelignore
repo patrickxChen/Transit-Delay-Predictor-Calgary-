@@ -1,0 +1,14 @@
+# Ignore model artifacts and large data during Vercel deployments
+models/
+data/
+env/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.vscode/
+node_modules/
+README.md
+.DS_Store
