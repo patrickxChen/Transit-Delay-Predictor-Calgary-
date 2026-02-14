@@ -1,7 +1,11 @@
 venv/
+env/
+\.venv/
 __pycache__/
 *.pyc
 data/realtime/
 transit.db
 .env
 data/static/CT_GTFS/
+.vercel
+.env*.local
